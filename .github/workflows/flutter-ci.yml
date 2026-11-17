@@ -3,9 +3,6 @@ name: Flutter CI Pipeline
 
 on:
   push:
-    branches:
-      - main
-      - develop
     tags:
       - "v*"
 
@@ -28,6 +25,7 @@ jobs:
 
   # ==========================================
   # JOB 1: CODE QUALITY AND TESTING
+  # Runs on PR and version tags
   # ==========================================
   quality:
     name: Code Quality & Tests
@@ -63,9 +61,11 @@ jobs:
 
   # ==========================================
   # JOB 2: ANDROID BUILD AND GITHUB RELEASE
+  # Runs only on version tags
   # ==========================================
   android:
     name: Android Build & Release
+    if: startsWith(github.ref, 'refs/tags/v')
     needs: quality
     runs-on: ubuntu-latest
     timeout-minutes: 40
@@ -120,7 +120,7 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-      # Publish GitHub Release only when a version tag is pushed
+      # Publish GitHub Release
       - name: Publish GitHub Release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v3
@@ -130,15 +130,80 @@ jobs:
             build/app/outputs/bundle/release/app-release.aab
           generate_release_notes: true
 
+      # Send QA Email after successful Release
+      - name: Send QA Email
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GMAIL_USERNAME: ${{ secrets.GMAIL_USERNAME }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          QA_EMAIL: ${{ secrets.QA_EMAIL }}
+          RELEASE_URL: ${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ github.ref_name }}
+          VERSION: ${{ github.ref_name }}
+        run: |
+          python3 <<'PY'
+          import os
+          import smtplib
+          from email.message import EmailMessage
+
+          username = os.environ["GMAIL_USERNAME"]
+          password = os.environ["GMAIL_APP_PASSWORD"].replace(" ", "")
+
+          recipients = [
+              email.strip()
+              for email in os.environ["QA_EMAIL"].split(",")
+              if email.strip()
+          ]
+
+          if not username or not password or not recipients:
+              raise RuntimeError("Missing Gmail or QA email configuration")
+
+          version = os.environ["VERSION"]
+          release_url = os.environ["RELEASE_URL"]
+
+          msg = EmailMessage()
+          msg["Subject"] = f"Android APK Ready for QA - {version}"
+          msg["From"] = username
+          msg["To"] = ", ".join(recipients)
+
+          msg.set_content(f"""
+          Hi QA Team,
+
+          A new Android release is ready for testing.
+
+          Version: {version}
+          Platform: Android
+          Build Status: Successful
+
+          Download APK and AAB:
+          {release_url}
+
+          Please download and start testing.
+
+          Regards,
+          Flutter CI Pipeline
+          """)
+
+          with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=30) as server:
+              server.login(username, password)
+              server.send_message(msg)
+
+          print("QA notification email sent successfully.")
+          PY
+
 
   # ==========================================
   # JOB 3: IOS BUILD
+  # Runs only on version tags
   # ==========================================
   ios:
     name: iOS Build
+    if: startsWith(github.ref, 'refs/tags/v')
     needs: quality
     runs-on: macos-latest
     timeout-minutes: 45
+
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout Repository
