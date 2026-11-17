@@ -1,0 +1,139 @@
+
+name: Flutter CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+
+  pull_request:
+    branches:
+      - main
+      - develop
+
+permissions:
+  contents: read
+
+concurrency:
+  group: flutter-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  # --------------------------------
+  # JOB 1: Code Quality and Testing
+  # --------------------------------
+
+  quality:
+    name: Code Quality & Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7.0.1
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Check Flutter Version
+        run: flutter --version
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Check Dart Formatting
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Analyze Flutter Code
+        run: flutter analyze
+
+      - name: Run Flutter Tests
+        run: flutter test
+
+
+  # --------------------------------
+  # JOB 2: Android Build
+  # --------------------------------
+
+  android:
+    name: Android Build
+    needs: quality
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7.0.1
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Build Android APK
+        run: flutter build apk --debug
+
+      - name: Build Android App Bundle
+        run: flutter build appbundle --debug
+
+      - name: Upload Android APK
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: android-debug-apk
+          path: build/app/outputs/flutter-apk/app-debug.apk
+          retention-days: 7
+
+      - name: Upload Android AAB
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: android-debug-aab
+          path: build/app/outputs/bundle/debug/app-debug.aab
+          retention-days: 7
+
+
+  # --------------------------------
+  # JOB 3: iOS Build
+  # --------------------------------
+
+  ios:
+    name: iOS Build
+    needs: quality
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7.0.1
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Check Xcode Version
+        run: xcodebuild -version
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Install CocoaPods
+        run: |
+          cd ios
+          pod install
+
+      - name: Build iOS
+        run: flutter build ios --release --no-codesign
+
+      - name: Upload iOS Build
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: ios-release-app
+          path: build/ios/iphoneos/Runner.app
+          retention-days: 7
