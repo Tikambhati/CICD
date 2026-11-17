@@ -1,4 +1,3 @@
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -103,14 +102,10 @@ class _LoginpageState extends State<Loginpage> {
 
           SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 25,
-                vertical: 20,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-
                   // Top Logo
                   Row(
                     children: [
@@ -119,10 +114,7 @@ class _LoginpageState extends State<Loginpage> {
                         width: 43,
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
-                            colors: [
-                              Color(0xFF9B8AFF),
-                              Color(0xFF6554D9),
-                            ],
+                            colors: [Color(0xFF9B8AFF), Color(0xFF6554D9)],
                           ),
                           borderRadius: BorderRadius.circular(14),
                         ),
@@ -190,14 +182,11 @@ class _LoginpageState extends State<Loginpage> {
                     decoration: BoxDecoration(
                       color: const Color(0xFF151C2E),
                       borderRadius: BorderRadius.circular(25),
-                      border: Border.all(
-                        color: Colors.white.withOpacity(0.08),
-                      ),
+                      border: Border.all(color: Colors.white.withOpacity(0.08)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-
                         const Text(
                           'Email Address',
                           style: TextStyle(
@@ -237,8 +226,7 @@ class _LoginpageState extends State<Loginpage> {
                           suffix: GestureDetector(
                             onTap: () {
                               setState(() {
-                                isPasswordVisible =
-                                !isPasswordVisible;
+                                isPasswordVisible = !isPasswordVisible;
                               });
                             },
                             child: Icon(
@@ -284,28 +272,27 @@ class _LoginpageState extends State<Loginpage> {
                             onPressed: isLoading ? null : login,
                             child: isLoading
                                 ? const CupertinoActivityIndicator(
-                              color: CupertinoColors.white,
-                            )
-                                : const Row(
-                              mainAxisAlignment:
-                              MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  'Sign In',
-                                  style: TextStyle(
                                     color: CupertinoColors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
+                                  )
+                                : const Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        'Sign In',
+                                        style: TextStyle(
+                                          color: CupertinoColors.white,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      SizedBox(width: 10),
+                                      Icon(
+                                        CupertinoIcons.arrow_right,
+                                        color: CupertinoColors.white,
+                                        size: 18,
+                                      ),
+                                    ],
                                   ),
-                                ),
-                                SizedBox(width: 10),
-                                Icon(
-                                  CupertinoIcons.arrow_right,
-                                  color: CupertinoColors.white,
-                                  size: 18,
-                                ),
-                              ],
-                            ),
                           ),
                         ),
                       ],
@@ -442,40 +429,22 @@ class _LoginpageState extends State<Loginpage> {
     return CupertinoTextField(
       controller: controller,
       placeholder: hint,
-      placeholderStyle: const TextStyle(
-        color: Color(0xFF68738A),
-        fontSize: 14,
-      ),
-      style: const TextStyle(
-        color: CupertinoColors.white,
-        fontSize: 14,
-      ),
+      placeholderStyle: const TextStyle(color: Color(0xFF68738A), fontSize: 14),
+      style: const TextStyle(color: CupertinoColors.white, fontSize: 14),
       keyboardType: keyboardType,
       obscureText: obscure,
-      padding: const EdgeInsets.symmetric(
-        horizontal: 15,
-        vertical: 18,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 18),
       prefix: Padding(
         padding: const EdgeInsets.only(left: 14),
-        child: Icon(
-          icon,
-          color: const Color(0xFF9299AB),
-          size: 19,
-        ),
+        child: Icon(icon, color: const Color(0xFF9299AB), size: 19),
       ),
       suffix: suffix == null
           ? null
-          : Padding(
-        padding: const EdgeInsets.only(right: 14),
-        child: suffix,
-      ),
+          : Padding(padding: const EdgeInsets.only(right: 14), child: suffix),
       decoration: BoxDecoration(
         color: const Color(0xFF0D1424),
         borderRadius: BorderRadius.circular(13),
-        border: Border.all(
-          color: const Color(0xFF303A50),
-        ),
+        border: Border.all(color: const Color(0xFF303A50)),
       ),
     );
   }
