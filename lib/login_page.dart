@@ -1,5 +1,5 @@
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:material_ui/material_ui.dart';
 
 class Loginpage extends StatefulWidget {
   const Loginpage({super.key});
@@ -82,7 +82,7 @@ class _LoginpageState extends State<Loginpage> {
               width: 320,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF6554D9).withOpacity(0.20),
+                color: const Color(0xFF6554D9).withValues(alpha: 0.20),
               ),
             ),
           ),
@@ -95,7 +95,7 @@ class _LoginpageState extends State<Loginpage> {
               width: 300,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF2676D9).withOpacity(0.12),
+                color: const Color(0xFF2676D9).withValues(alpha: 0.12),
               ),
             ),
           ),
@@ -182,7 +182,9 @@ class _LoginpageState extends State<Loginpage> {
                     decoration: BoxDecoration(
                       color: const Color(0xFF151C2E),
                       borderRadius: BorderRadius.circular(25),
-                      border: Border.all(color: Colors.white.withOpacity(0.08)),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.08),
+                      ),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

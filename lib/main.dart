@@ -1,5 +1,6 @@
-import 'package:cicd_demo/LoginPage.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+
+import 'login_page.dart';
 
 void main() {
   runApp(const MyApp());
