@@ -6,6 +6,8 @@ on:
     branches:
       - main
       - develop
+    tags:
+      - "v*"
 
   pull_request:
     branches:
@@ -27,7 +29,6 @@ jobs:
   # ==========================================
   # JOB 1: CODE QUALITY AND TESTING
   # ==========================================
-
   quality:
     name: Code Quality & Tests
     runs-on: ubuntu-latest
@@ -61,14 +62,16 @@ jobs:
 
 
   # ==========================================
-  # JOB 2: ANDROID BUILD
+  # JOB 2: ANDROID BUILD AND GITHUB RELEASE
   # ==========================================
-
   android:
-    name: Android Build
+    name: Android Build & Release
     needs: quality
     runs-on: ubuntu-latest
     timeout-minutes: 40
+
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout Repository
@@ -96,32 +99,41 @@ jobs:
         run: flutter pub get
 
       - name: Build Android APK
-        run: flutter build apk --debug
+        run: flutter build apk --release
 
       - name: Build Android App Bundle
-        run: flutter build appbundle --debug
+        run: flutter build appbundle --release
 
-      - name: Upload Android APK
+      - name: Upload Android APK Artifact
         uses: actions/upload-artifact@v7.0.2
         with:
-          name: android-debug-apk
-          path: build/app/outputs/flutter-apk/app-debug.apk
+          name: android-release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
           retention-days: 7
 
-      - name: Upload Android AAB
+      - name: Upload Android AAB Artifact
         uses: actions/upload-artifact@v7.0.2
         with:
-          name: android-debug-aab
-          path: build/app/outputs/bundle/debug/app-debug.aab
+          name: android-release-aab
+          path: build/app/outputs/bundle/release/app-release.aab
           if-no-files-found: error
           retention-days: 7
+
+      # Publish GitHub Release only when a version tag is pushed
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v3
+        with:
+          files: |
+            build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/bundle/release/app-release.aab
+          generate_release_notes: true
 
 
   # ==========================================
   # JOB 3: IOS BUILD
   # ==========================================
-
   ios:
     name: iOS Build
     needs: quality
@@ -151,7 +163,7 @@ jobs:
       - name: Build iOS
         run: flutter build ios --release --no-codesign
 
-      - name: Upload iOS Build
+      - name: Upload iOS Build Artifact
         uses: actions/upload-artifact@v7.0.2
         with:
           name: ios-release-app
