@@ -16,18 +16,22 @@ permissions:
   contents: read
 
 concurrency:
-  group: flutter-ci-${{ github.ref }}
+  group: flutter-ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION: "3.47.6"
 
 jobs:
 
-  # --------------------------------
-  # JOB 1: Code Quality and Testing
-  # --------------------------------
+  # ==========================================
+  # JOB 1: CODE QUALITY AND TESTING
+  # ==========================================
 
   quality:
     name: Code Quality & Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
       - name: Checkout Repository
@@ -37,6 +41,7 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
 
       - name: Check Flutter Version
@@ -55,24 +60,37 @@ jobs:
         run: flutter test
 
 
-  # --------------------------------
-  # JOB 2: Android Build
-  # --------------------------------
+  # ==========================================
+  # JOB 2: ANDROID BUILD
+  # ==========================================
 
   android:
     name: Android Build
     needs: quality
     runs-on: ubuntu-latest
+    timeout-minutes: 40
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v7.0.1
 
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
+
+      - name: Check Android Build Environment
+        run: |
+          flutter --version
+          java -version
 
       - name: Install Dependencies
         run: flutter pub get
@@ -88,6 +106,7 @@ jobs:
         with:
           name: android-debug-apk
           path: build/app/outputs/flutter-apk/app-debug.apk
+          if-no-files-found: error
           retention-days: 7
 
       - name: Upload Android AAB
@@ -95,17 +114,19 @@ jobs:
         with:
           name: android-debug-aab
           path: build/app/outputs/bundle/debug/app-debug.aab
+          if-no-files-found: error
           retention-days: 7
 
 
-  # --------------------------------
-  # JOB 3: iOS Build
-  # --------------------------------
+  # ==========================================
+  # JOB 3: IOS BUILD
+  # ==========================================
 
   ios:
     name: iOS Build
     needs: quality
     runs-on: macos-latest
+    timeout-minutes: 45
 
     steps:
       - name: Checkout Repository
@@ -115,18 +136,17 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
 
-      - name: Check Xcode Version
-        run: xcodebuild -version
+      - name: Check iOS Build Environment
+        run: |
+          flutter --version
+          xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-version
 
       - name: Install Dependencies
         run: flutter pub get
-
-      - name: Install CocoaPods
-        run: |
-          cd ios
-          pod install
 
       - name: Build iOS
         run: flutter build ios --release --no-codesign
@@ -136,4 +156,5 @@ jobs:
         with:
           name: ios-release-app
           path: build/ios/iphoneos/Runner.app
+          if-no-files-found: error
           retention-days: 7
